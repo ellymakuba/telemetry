@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<!-- Replace the x.x.x with the version of the SDK that you are using -->
+   <script src="aria-webjs-sdk-1.8.3.min.js"></script>
+
+    <title>ARIA JavaScript Library Sample</title>
+</head>
+
+<body>
+    <div id="traceDiv" style="background-color: yellow"></div>
+    <script>
+        var defaultLogger;
+        var latency=10;
+
+        function checkStatusCallback(callbackType, responseCode, events) {
+            if (callbackType == 1 /* SEND_FAILED */) {
+                // Process error
+                alert("Sent Failed! " + responseCode);
+            } else {
+                // Event sent
+                alert("Events successfully sent!");
+            }
+        }
+
+        function onPageLoad() {
+            defaultLogger = AWTLogManager.initialize("3a259b7d7e384d929af573f2816dc9ab-b819514e-5886-421a-91bb-1d0ad2c34b5b-7008");
+            AWTLogManager.addNotificationListener({
+				eventsSent: (events) => {
+					console.log("Number of Events Sent: "+ JSON.stringify(events));
+				},
+				eventsDropped: (events, reason) => {
+					//you can check AWTEventsDroppedReason to see which reason caused the events to be dropped.
+					alert("Number of Events Dropped: "+ events.length)
+				} 
+			});
+        }
+
+        window.onload = onPageLoad; // So main window will call this function when loaded by browsers.
+
+        function sendEvents() {
+            //Log an event.
+            var eventProperties = new AWTEventProperties();
+			eventProperties.setName('Your_Event_Name');
+			eventProperties.setProperty('Button_Clicked', latency);
+			eventProperties.setPropertyWithPii('Page_Title', 'ARIA JavaScript Library Sample',
+									AWTPiiKind.GenericData);
+			defaultLogger.logEvent(eventProperties);
+
+            //Log an event using fluent syntax for page view.
+            defaultLogger.logEvent({
+				name: 'Network',
+				properties: { 'call': 1,"latency":latency,
+                      'Page_Title': { value: 'ARIA JavaScript Library Sample',
+					   pii: AWTPiiKind.GenericData }}
+			});
+        }		
+    </script>
+    <form>
+        <input type="button" id="send_Events" onclick="sendEvents()" value="Send Events">
+	</form>
+</body>
+</html>
